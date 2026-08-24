@@ -1,0 +1,9 @@
+[project]
+name = "matter-perturbations-pinn"
+version = "0.1.0"
+description = "PINN minimalista para la ecuación de perturbaciones de materia en ΛCDM"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.black]
+line-length = 120

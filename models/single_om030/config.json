@@ -1,0 +1,16 @@
+{
+  "kind": "single",
+  "Om_m0": 0.3,
+  "hidden_units": [
+    32,
+    32
+  ],
+  "activation": "Tanh",
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "iterations": 8000,
+  "seed": 42,
+  "N0": -1.0,
+  "Nf": 0.0,
+  "train_seconds": 83.3
+}

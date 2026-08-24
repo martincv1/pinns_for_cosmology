@@ -1,0 +1,19 @@
+{
+  "kind": "bundle",
+  "Om_m0_range": [
+    0.1,
+    0.5
+  ],
+  "hidden_units": [
+    64,
+    64
+  ],
+  "activation": "SiLU",
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "iterations": 20000,
+  "seed": 42,
+  "N0": -1.0,
+  "Nf": 0.0,
+  "train_seconds": 898.7
+}

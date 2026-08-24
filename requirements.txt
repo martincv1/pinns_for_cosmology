@@ -1,0 +1,6 @@
+numpy
+scipy
+matplotlib
+torch
+neurodiffeq==0.7.0
+pytest
