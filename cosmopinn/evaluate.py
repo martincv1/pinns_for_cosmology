@@ -2,8 +2,8 @@
 
 No hardcodea nada del run — todo lo necesario para reconstruir la solución
 (tipo de condición, si es bundle o no) se lee de `config.json`, que guardó
-`training.py`. Así `validate.py` y `benchmark.py` sirven para cualquier run,
-en vez de apuntar a una carpeta fija.
+`training.py`. Así `validate.py` sirve para cualquier run, en vez de apuntar
+a una carpeta fija.
 """
 
 import json

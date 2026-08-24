@@ -2,8 +2,7 @@
 
 Sirve para validar la red — no para reemplazarla. Resolver así es exacto
 (dentro de la tolerancia numérica) pero hay que integrar una vez por cada
-valor de Ω_m0; `benchmark.py` cuantifica ese costo comparado con evaluar la
-red ya entrenada.
+valor de Ω_m0.
 
 Trabaja directamente en la variable física a (sin el cambio de variables de
 `equation.py`), y usa las mismas `E2`/`dlnH_dN` de `cosmology.py` que el

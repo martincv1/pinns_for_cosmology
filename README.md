@@ -27,27 +27,9 @@ Repo con dos redes entrenadas y commiteadas en `models/`:
 
 Validadas contra un integrador RK45 de referencia (`cosmopinn/reference.py`).
 
-**Error de la red bundle contra la referencia** (`δ_m`, en todo el rango `Ω_m0 ∈ [0.1, 0.5]` y `a ∈ [10⁻³, 1]`):
-
-| | mediana | percentil 95 | máximo |
-|---|---|---|---|
-| error relativo | 0.61% | 2.24% | 6.11% |
-
 ![Error relativo vs. a, para Ω_m0=0.3](figures/error_curve.png)
 
-**Costo: integrar cada vez vs. entrenar una vez y evaluar** (`scripts/benchmark.py`, CPU, 200 evaluaciones de `Ω_m0` distintos):
-
-| método | tiempo por evaluación |
-|---|---|
-| `scipy.solve_ivp` (RK45) | 12.5 ms |
-| red bundle, una por una | 0.76 ms (16x más rápido) |
-| red bundle, batcheadas | 0.19 ms (65x más rápido) |
-
-Entrenar el bundle tomó 899 s (~15 min en CPU) una única vez. A partir de ahí, cada evaluación nueva es casi gratis: el punto de equilibrio frente a re-integrar con scipy está en ~77.000 evaluaciones — una cantidad grande para un uso puntual, pero chica comparada con las 10⁵-10⁷ evaluaciones que suele necesitar una cadena de MCMC para estimar parámetros cosmológicos. Ahí es donde se nota la diferencia.
-
 ![Error en todo el rango de Ω_m0](figures/error_heatmap.png)
-
-![Costo acumulado: integrar vs. entrenar + evaluar](figures/benchmark.png)
 
 ## Cómo correrlo
 
@@ -60,7 +42,6 @@ pytest -q                                          # tests contra los pesos ya c
 python scripts/train_single.py                     # entrena Ω_m0 fijo (~1-2 min en CPU)
 python scripts/train_bundle.py                      # entrena el bundle (~15 min en CPU)
 python scripts/validate.py --run models/bundle_om_010_050
-python scripts/benchmark.py
 ```
 
 El notebook `notebooks/perturbaciones_pinn.ipynb` recorre la misma historia de punta a punta usando los pesos ya entrenados (corre en menos de un minuto, sin reentrenar nada).
@@ -84,8 +65,7 @@ matter_perturbations_project/
 ├── scripts/
 │   ├── train_single.py   # Ω_m0 fijo
 │   ├── train_bundle.py   # bundle en Ω_m0
-│   ├── validate.py       # PINN vs referencia
-│   └── benchmark.py      # costo de entrenar+evaluar vs. integrar cada vez
+│   └── validate.py       # PINN vs referencia
 ├── models/                # pesos ya entrenados (nets.pth, config.json, loss.npy)
 ├── figures/                # figuras usadas en este README
 ├── notebooks/              # notebook narrado, punta a punta

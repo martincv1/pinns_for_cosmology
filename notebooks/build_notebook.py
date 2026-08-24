@@ -175,31 +175,15 @@ print("Resumen del error en toda la grilla:", error_summary(err_grid))"""
 )
 
 md(
-    """## 6. ¿Cuándo conviene entrenar en vez de integrar?
-
-Entrenar tiene un costo fijo, grande comparado con una sola integración.
-Pero una vez entrenada, evaluar la red para un $\\Omega_{m0}$ nuevo es
-prácticamente gratis. `scripts/benchmark.py` mide ambos costos y calcula el
-punto de equilibrio — ver `figures/benchmark.png` y la sección de resultados
-del README para los números medidos en esta máquina."""
-)
-
-code(
-    """from IPython.display import Image
-Image("../figures/benchmark.png")"""
-)
-
-md(
     """## Conclusión
 
 Una red entrenada sin datos —minimizando el residuo de la ecuación— aprende
-una familia continua de soluciones con error submilimétrico (en términos
-relativos, <1-2%) frente al integrador de referencia, y una vez entrenada
-evaluarla es órdenes de magnitud más rápido que integrar de nuevo. El
-límite de esta demo es el de la demo: un solo parámetro y ΛCDM. El trabajo
-de tesis del que sale este extracto extiende la misma idea a gravedad
-modificada f(R) y a un espacio de 4 parámetros — fuera del alcance de este
-repo, que busca mostrar el método en su forma más simple y legible."""
+una familia continua de soluciones que se mantiene cerca del integrador de
+referencia en todo el rango de $\\Omega_{m0}$ entrenado. El límite de esta
+demo es el de la demo: un solo parámetro y ΛCDM. El trabajo de tesis del
+que sale este extracto extiende la misma idea a gravedad modificada f(R) y
+a un espacio de 4 parámetros — fuera del alcance de este repo, que busca
+mostrar el método en su forma más simple y legible."""
 )
 
 nb["cells"] = cells
