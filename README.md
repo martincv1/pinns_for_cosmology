@@ -101,7 +101,3 @@ Este repo muestra el método en su forma más simple: un modelo cosmológico (Λ
 Extracto de mi tesis de licenciatura en Física, sobre Physics-Informed Neural Networks aplicadas a cosmología. Reescrito desde cero para ser legible y autocontenido — la física es la misma, el código no es una copia del repo de tesis.
 
 Construido con [PyTorch](https://pytorch.org/) y [neurodiffeq](https://github.com/NeuroDiffGym/neurodiffeq).
-
-## Licencia
-
-MIT — ver [LICENSE](LICENSE).
