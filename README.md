@@ -1,82 +1,85 @@
-# Perturbaciones de materia con una Red Neuronal Informada por Física (PINN)
+# Matter Perturbations with a Physics-Informed Neural Network (PINN)
 
-Una red neuronal, entrenada sin datos, que aprende a resolver una ecuación diferencial en vez de resolverla una vez por cada configuración de parámetros.
+A neural network trained without labeled data to solve a differential equation across a range of parameters, rather than running a numerical solver for each parameter configuration.
 
-![Comparación PINN vs solución numérica](figures/comparison.png)
+![PINN compared with the numerical solution](figures/comparison.png)
 
-## El problema: evolución de estructuras a gran escala
+## The problem: the evolution of large-scale structure
 
-En cosmología, la forma en que se agrupa la materia en el universo —el origen de las galaxias— sigue una ecuación diferencial de segundo orden. Para poner a prueba un modelo cosmológico contra observaciones hay que resolver esa ecuación reiteradamente: una vez por cada combinación de parámetros que se quiere explorar, y en la práctica eso conlleva un alto costo computacional (es necesario ajustar parámetros, analizar estabilidad).
+In cosmology, the growth of matter perturbations, which underlies the formation of galaxies and large-scale structure, is described by a second-order differential equation. Testing a cosmological model against observations requires solving this equation repeatedly for different parameter combinations. This can be computationally expensive when fitting parameters or analyzing stability.
 
-Resolverla con un integrador numérico (Runge-Kutta) es exacto pero hay que repetirlo cada vez que se cambia algun parámetro.
+A numerical integrator, such as a Runge–Kutta solver, provides a reference solution, but the integration must be repeated whenever the parameters change.
 
-## La idea: entrenar una vez
+## The idea: train once
 
-En vez de resolver la ecuación una vez por parámetro, se entrena una red que aprenda **la familia completa de soluciones** de una sola vez: no `δ(a)` para un `Ω_m0` fijo, sino `δ(a, Ω_m0)` para todo un rango de `Ω_m0` simultáneamente (esto se conoce como *bundle solution*).
+Instead of solving the equation separately for each parameter value, a neural network learns **an entire family of solutions** at once: not just `δ(a)` for a fixed `Ω_m0`, but `δ(a, Ω_m0)` over a range of `Ω_m0` values simultaneously. This is known as a *bundle solution*.
 
-No hay datos de entrenamiento. La función de costo es directamente el residuo al cuadrado de la ecuación diferencial, promediado sobre puntos muestreados del dominio — la red aprende a cumplir con la física, no a interpolar ejemplos.
+No labeled training data are used. The loss function is the squared residual of the differential equation, averaged over points sampled from the domain. Training therefore encourages the network to satisfy the governing equation.
 
-Una vez entrenada, evaluarla para un `Ω_m0` nuevo es un forward pass, rápido a comparación de correr el integrador numérico.
+Once trained, evaluating the model for a new `Ω_m0` within the training range requires only a forward pass through the network.
 
-## Resultados
+## Results
 
-Repo con dos redes entrenadas y commiteadas en `models/`:
+The repository includes two trained networks, with their weights saved in `models/`:
 
-- **`single_om030`**: red no-bundle, `Ω_m0 = 0.3` fijo.
-- **`bundle_om_010_050`**: red bundle, `Ω_m0 ∈ [0.1, 0.5]`.
+- **`single_om030`**: a network trained for a fixed `Ω_m0 = 0.3`.
+- **`bundle_om_010_050`**: a bundle network trained over `Ω_m0 ∈ [0.1, 0.5]`.
 
-Validadas contra un integrador RK45 de referencia (solve_ivp de Scipy en `cosmopinn/reference.py`).
+Both are validated against an RK45 reference integrator implemented with SciPy's `solve_ivp` in `cosmopinn/reference.py`.
 
-![Error relativo vs. a, para Ω_m0=0.3](figures/error_curve.png)
+![Relative error versus a for Ω_m0 = 0.3](figures/error_curve.png)
 
-![Error en todo el rango de Ω_m0](figures/error_heatmap.png)
+![Error across the full Ω_m0 range](figures/error_heatmap.png)
 
-## Cómo correrlo
+## How to run
+
+Run the following commands from the repository root:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-pytest -q                                          # tests contra los pesos ya commiteados
+pytest -q                                          # Test the saved model weights
 
-python scripts/train_single.py                     # entrena Ω_m0 fijo (~1-2 min en CPU)
-python scripts/train_bundle.py                      # entrena el bundle (~15 min en CPU)
+python scripts/train_single.py                     # Train at fixed Ω_m0 (~1–2 min on CPU)
+python scripts/train_bundle.py                     # Train the bundle (~15 min on CPU)
 python scripts/validate.py --run models/bundle_om_010_050
 ```
 
-El notebook `notebooks/perturbaciones_pinn.ipynb` muestra el flujo de configuración, entrenamiento y validación de los resultados usando los pesos ya entrenados (corre en menos de un minuto, sin reentrenar nada).
+The notebook `notebooks/perturbaciones_pinn.ipynb` walks through configuration, training, and validation. It can use the saved weights to validate the results without retraining, running in less than a minute.
 
-## Cómo está validado
+## Validation
 
-- Contra un integrador numérico (`scipy.solve_ivp`, RK45) que resuelve la misma ecuación sin ningún cambio de variables.
-- `cosmopinn/cosmology.py`  contiene los paramétros del fondo cosmológico: tanto la red como el solver de referencia llaman a las mismas funciones, así que no hay dos físicas ligeramente distintas escondidas en dos archivos.
-- Tests automáticos (`pytest`, corren en CI en cada push): límites físicos de la cosmología de fondo, sanidad del integrador de referencia, y un test de regresión que carga los pesos commiteados y verifica el error contra la referencia.
+- Predictions are compared with a numerical integrator (`scipy.solve_ivp`, RK45) that solves the same equation without a change of variables.
+- `cosmopinn/cosmology.py` defines the background cosmology. Both the neural network and the reference solver use the same functions, keeping the physical model consistent across implementations.
+- Automated tests (`pytest`, run in CI on each push) check the physical limits of the background cosmology and the reference integrator's behavior. A regression test loads the saved model weights and checks prediction errors against the numerical reference.
 
-## Qué hay adentro
+## Repository structure
 
-```
-matter_perturbations_project/
+```text
+pinns_for_cosmology/
 ├── cosmopinn/
-│   ├── cosmology.py     # fondo ΛCDM: E(a)², d(ln H)/dN
-│   ├── equation.py      # cambio de variables + residuo de la ODE
-│   ├── training.py      # arma la red y el solver de neurodiffeq, entrena, guarda
-│   ├── reference.py      # solución de referencia (scipy.solve_ivp)
-│   └── evaluate.py       # carga un run entrenado, métricas de error
+│   ├── cosmology.py     # ΛCDM background: E(a)², d(ln H)/dN
+│   ├── equation.py      # Change of variables and ODE residual
+│   ├── training.py      # Build the network and neurodiffeq solver; train and save
+│   ├── reference.py     # Reference solution (scipy.solve_ivp)
+│   └── evaluate.py      # Load a trained run and compute error metrics
 ├── scripts/
-│   ├── train_single.py   # Ω_m0 fijo
-│   ├── train_bundle.py   # bundle en Ω_m0
-│   └── validate.py       # PINN vs referencia
-├── models/                # pesos ya entrenados (nets.pth, config.json, loss.npy)
-├── figures/                # figuras usadas en este README
-├── notebooks/              # notebook narrado, punta a punta
+│   ├── train_single.py  # Fixed Ω_m0
+│   ├── train_bundle.py  # Bundle over Ω_m0
+│   └── validate.py      # Compare the PINN with the reference solution
+├── models/             # Saved weights and outputs (nets.pth, config.json, loss.npy)
+├── figures/            # Figures used in this README
+├── notebooks/          # Annotated notebook covering the full workflow
 └── tests/
 ```
 
-## Limitaciones y qué sigue
+## Limitations and further work
 
-Este repo muestra el método en su forma más simple: el modelo cosmológico estándar (ΛCDM) y un parámetro del bundle (`Ω_m0`). Es una parte de mi trabajo de tesis, la cual extiende la misma idea a gravedad modificada (`f(R)`, modelo de Hu-Sawicki) y a un espacio de 4 parámetros del bundle. Todo eso está en producción.
-## Contexto
+This repository demonstrates the method in its simplest form: the standard cosmological model (ΛCDM) and a single bundle parameter (`Ω_m0`). It represents part of my thesis work, which extends the same approach to modified gravity (`f(R)`, the Hu–Sawicki model) and a four-parameter bundle. Those extensions belong to the broader thesis project.
 
-Extracto de mi tesis de licenciatura en Física, sobre Physics-Informed Neural Networks aplicadas a cosmología. Reescrito desde cero para ser legible y autocontenido — la física es la misma, el código no es una copia del repo de tesis.
+## Context
 
-Construido con [PyTorch](https://pytorch.org/) y [neurodiffeq](https://github.com/NeuroDiffGym/neurodiffeq).
+This project presents a self-contained example from my master's thesis in Physics on Physics-Informed Neural Networks applied to cosmology. The code was rewritten from scratch for clarity and readability. It implements the same physics as the thesis work, rather than copying the original thesis repository.
+
+Built with [PyTorch](https://pytorch.org/) and [neurodiffeq](https://github.com/NeuroDiffGym/neurodiffeq).
